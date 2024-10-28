@@ -1,5 +1,4 @@
 name: Deploy Model
-
 on:
   push:
     branches:
