@@ -40,7 +40,15 @@ jobs:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         run: |
           ngrok authtoken $NGROK_AUTH_TOKEN
-          ngrok http 5000 > /dev/null &
-      
-      - name: Display ngrok URL
-        run: curl --silent --show-error http://localhost:4040/api/tunnels | jq '.tunnels[0].public_url'
+          nohup ngrok http 5000 > /dev/null &
+
+      - name: Set ngrok URL as output
+        id: get_ngrok_url
+        run: |
+          sleep 5  # 等待 ngrok 完全启动
+          NGROK_URL=$(curl --silent --show-error http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
+          echo "ngrok URL is: $NGROK_URL"
+          echo "::set-output name=ngrok_url::$NGROK_URL"
+
+      - name: Show ngrok URL
+        run: echo "Access your app at: ${{ steps.get_ngrok_url.outputs.ngrok_url }}"
