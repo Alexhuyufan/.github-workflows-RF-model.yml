@@ -1,0 +1,40 @@
+name: Flask Application CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+
+    - name: Run Flask App
+      env:
+        FLASK_APP: app.py
+        FLASK_ENV: development
+      run: |
+        source venv/bin/activate
+        flask run --host=0.0.0.0 --port=5005 &
+      continue-on-error: true
+
+    - name: Run Tests
+      run: |
+        source venv/bin/activate
+       # pytest  # 假设你有测试脚本
