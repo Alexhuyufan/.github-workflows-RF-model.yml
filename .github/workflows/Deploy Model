@@ -1,0 +1,28 @@
+name: Deploy Model
+
+on:
+  push:
+    branches:
+      - main  # 替换为你的默认分支
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'  # 替换为你的 Python 版本
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # 如果你有依赖项
+
+      - name: Run deployment script
+        run: |
+          python your_deployment_script.py  # 替换为你的部署脚本
