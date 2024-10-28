@@ -35,12 +35,12 @@ jobs:
           echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
           sudo apt update && sudo apt install -y ngrok
 
-      - name: Start ngrok with static subdomain
+      - name: Start ngrok
         env:
           NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
         run: |
           ngrok authtoken $NGROK_AUTH_TOKEN
-          nohup ngrok http --subdomain=causal-absolute-squid 5005 > ngrok.log 2>&1 &
+          nohup ngrok http 5000 > /dev/null &
 
       - name: Display ngrok URL
         run: curl --silent --show-error http://localhost:4040/api/tunnels | jq '.tunnels[0].public_url'
