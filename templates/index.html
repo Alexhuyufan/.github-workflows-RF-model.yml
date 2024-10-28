@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脓毒症IFI死亡风险计算器</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 400px; /* 限制容器宽度 */
+            margin: 0 auto; /* 居中容器 */
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px; /* 增加内边距，避免内容贴边 */
+        }
+        .form-group {
+            margin-bottom: 10px; /* 减少输入框间距 */
+        }
+        label {
+            display: block;
+            margin-bottom: 5px; /* 标签与输入框的间距 */
+            font-size: 0.9em; /* 缩小标签字体 */
+        }
+        input, select {
+            width: calc(100% - 16px); /* 计算输入框和选择框的宽度，减去内边距 */
+            padding: 8px; /* 减少内边距 */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9em; /* 缩小输入框字体 */
+            box-sizing: border-box; /* 包含内边距在总宽度内 */
+        }
+        button {
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em; /* 缩小按钮字体 */
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .result-card {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 15px; /* 减少卡片内边距 */
+            margin: 20px 0; /* 增加上下间距 */
+            text-align: center;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f9f9f9;
+        }
+        .result-card h3 {
+            margin: 0;
+            font-size: 1.5em; /* 缩小标题字体 */
+            color: #333;
+        }
+        .result-card p {
+            font-size: 1.3em; /* 缩小概率字体 */
+            color: #e74c3c; /* 红色，用于强调死亡概率 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="font-size: 1.5em; text-align: center;">脓毒症IFI死亡风险计算器</h1>
+        <form action="/predict" method="post">
+            <div class="form-group">
+                <label for="age">年龄 (岁):</label>
+                <input type="number" id="age" name="age" placeholder="请输入年龄" required>
+            </div>
+            <div class="form-group">
+                <label for="cci">CCI (Charlson Comorbidity Index):</label>
+                <input type="number" id="cci" name="cci" placeholder="请输入CCI" required>
+            </div>
+            <div class="form-group">
+                <label for="sapsii">SAPSII:</label>
+                <input type="number" id="sapsii" name="sapsii" placeholder="请输入SAPSII" required>
+            </div>
+            <div class="form-group">
+                <label for="gcs_min">GCS最小值:</label>
+                <input type="number" id="gcs_min" name="gcs_min" placeholder="请输入GCS最小值" required>
+            </div>
+            <div class="form-group">
+                <label for="rdw_max">RDW最大值:</label>
+                <input type="number" id="rdw_max" name="rdw_max" placeholder="请输入RDW最大值" required>
+            </div>
+            <div class="form-group">
+                <label for="bilirubin_total_max">总胆红素最大值:</label>
+                <input type="number" id="bilirubin_total_max" name="bilirubin_total_max" placeholder="请输入总胆红素最大值" required>
+            </div>
+            <div class="form-group">
+                <label for="spo2_min">SpO2最小值:</label>
+                <input type="number" id="spo2_min" name="spo2_min" placeholder="请输入SpO2最小值" required>
+            </div>
+            <div class="form-group">
+                <label for="weight">体重 (kg):</label>
+                <input type="number" id="weight" name="weight" placeholder="请输入体重" required>
+            </div>
+            <div class="form-group">
+                <label for="temperature_max">体温最大值 (°C):</label>
+                <input type="number" id="temperature_max" name="temperature_max" placeholder="请输入体温最大值" required>
+            </div>
+            <div class="form-group">
+                <label for="platelets_min">血小板最小值:</label>
+                <input type="number" id="platelets_min" name="platelets_min" placeholder="请输入血小板最小值" required>
+            </div>
+            <div class="form-group">
+                <label for="septic_shock">脓毒症休克:</label>
+                <select id="septic_shock" name="septic_shock" required>
+                    <option value="">请选择</option>
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="surgical">手术（住院期间）:</label>
+                <select id="surgical" name="surgical" required>
+                    <option value="">请选择</option>
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="inr_max">INR最大值:</label>
+                <input type="number" id="inr_max" name="inr_max" placeholder="请输入INR最大值" required>
+            </div>
+            <div class="form-group">
+                <label for="first_careunit_2">首次住院科室:</label>
+                <select id="first_careunit_2" name="first_careunit_2" required>
+                    <option value="">请选择</option>
+                    <option value="1">外科ICU</option>
+                    <option value="0">非外科ICU</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="chloride_max">血清氯最大值:</label>
+                <input type="number" id="chloride_max" name="chloride_max" placeholder="请输入血清氯最大值" required>
+            </div>
+            <button type="submit">计算死亡概率</button>
+        </form>
+
+        {% if prediction %}
+            <div class="result-card">
+                <h3>死亡概率</h3>
+                <p>{{ prediction.death_probability }}%</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
